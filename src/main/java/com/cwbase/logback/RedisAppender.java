@@ -2,8 +2,6 @@ package com.cwbase.logback;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Iterator;
 
 import org.apache.commons.pool.impl.GenericObjectPool;
 
@@ -14,10 +12,10 @@ import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 
 public class RedisAppender extends UnsynchronizedAppenderBase<LoggingEvent> {
-
+	
 	JedisPool pool;
 
-	JSONEventLayout layout;
+	com.cwbase.logback.logstash.JSONEventLayout layout;
 
 	// logger configurable options
 	String host = "localhost";
@@ -28,10 +26,11 @@ public class RedisAppender extends UnsynchronizedAppenderBase<LoggingEvent> {
 	int database = Protocol.DEFAULT_DATABASE;
 
 	public RedisAppender() {
-		layout = new JSONEventLayout();
+		layout = new com.cwbase.logback.logstash.JSONEventLayout();
 		try {
 			setSourceHost(InetAddress.getLocalHost().getHostName());
 		} catch (UnknownHostException e) {
+			setSourceHost("unknown-host");
 		}
 	}
 
@@ -52,58 +51,12 @@ public class RedisAppender extends UnsynchronizedAppenderBase<LoggingEvent> {
 		}
 	}
 
-	public String getSource() {
-		return layout.getSource();
-	}
-
-	public void setSource(String source) {
-		layout.setSource(source);
-	}
-
 	public String getSourceHost() {
 		return layout.getSourceHost();
 	}
 
 	public void setSourceHost(String sourceHost) {
 		layout.setSourceHost(sourceHost);
-	}
-
-	public String getSourcePath() {
-		return layout.getSourcePath();
-	}
-
-	public void setSourcePath(String sourcePath) {
-		layout.setSourcePath(sourcePath);
-	}
-
-	public String getTags() {
-		if (layout.getTags() != null) {
-			Iterator<String> i = layout.getTags().iterator();
-			StringBuffer sb = new StringBuffer();
-			while (i.hasNext()) {
-				sb.append(i.next());
-				if (i.hasNext()) {
-					sb.append(',');
-				}
-			}
-			return sb.toString();
-		}
-		return null;
-	}
-
-	public void setTags(String tags) {
-		if (tags != null) {
-			String[] atags = tags.split(",");
-			layout.setTags(Arrays.asList(atags));
-		}
-	}
-
-	public String getType() {
-		return layout.getType();
-	}
-
-	public void setType(String type) {
-		layout.setType(type);
 	}
 
 	public String getHost() {
@@ -177,6 +130,14 @@ public class RedisAppender extends UnsynchronizedAppenderBase<LoggingEvent> {
 	public int getCallerStackIndex() {
 		return layout.getCallerStackIdx();
 	}
+	
+	public void setUserFields(String fields){
+		layout.setUserFields(fields);
+	}
+	
+	public String getUserFields(){
+		return layout.getUserFields();
+	}
 
 	@Override
 	public void start() {
@@ -190,5 +151,4 @@ public class RedisAppender extends UnsynchronizedAppenderBase<LoggingEvent> {
 		super.stop();
 		pool.destroy();
 	}
-
 }
